@@ -310,6 +310,14 @@ def sync(
     # this means projects could exist in other snyk orgs we're not watching
     org_ids = [s.snyk_orgs[o]["orgId"] for o in s.snyk_orgs]
 
+    print(org_ids)
+
+    # we want to get the visible list of orgs
+
+    visible_orgs = [o.id for o in client.organizations.all()]
+
+    org_ids = [o for o in org_ids if o in visible_orgs]
+
     typer.echo("Scanning Snyk for projects originating from GitHub Repos", err=True)
     with typer.progressbar(watchlist.repos, label="Scanning: ") as project_progress:
         for r in project_progress:
