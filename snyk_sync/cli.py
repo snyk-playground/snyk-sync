@@ -192,7 +192,7 @@ def sync(
     # flush the watchlist
     # watchlist = SnykWatchList()
 
-    gh = Github(s.github_token, per_page=100)
+    gh = Github(s.github_token, per_page=1)
 
     rate_limit = RateLimit(gh)
 
@@ -208,10 +208,12 @@ def sync(
     exclude_list = []
 
     typer.echo("Getting all GitHub repos", err=True)
-    with typer.progressbar(gh_orgs, label="Processing: ") as gh_progress:
-        for gh_org_name in gh_progress:
-            gh_org = gh.get_organization(gh_org_name)
-            gh_repos = gh_org.get_repos(type="all", sort="updated", direction="desc")
+
+    for gh_org_name in gh_orgs:
+        gh_org = gh.get_organization(gh_org_name)
+        gh_repos = gh_org.get_repos(type="all", sort="updated", direction="desc")
+        gh_repos_count = gh_repos.totalCount
+        with typer.progressbar(length=gh_repos_count, label=f"Processing {gh_org_name}: ") as gh_progress:
             for gh_repo in gh_repos:
                 # print(watchlist.has_repo(gh_repo.id))
                 if watchlist.has_repo(gh_repo.id) == False:
@@ -249,6 +251,8 @@ def sync(
                     watchlist.get_repo(gh_repo.url).updated_at = str(gh_repo.updated_at)
                 else:
                     exclude_list.append(gh_repo.id)
+
+                gh_progress.update(1)
 
     # print(exclude_list)
     rate_limit.update(show_rate_limit)
@@ -305,20 +309,19 @@ def sync(
 
     # we are only searching for orgs declared in the snyk-orgs.yaml file
     # this means projects could exist in other snyk orgs we're not watching
-    org_ids = [s.snyk_orgs[o]["orgId"] for o in s.snyk_orgs]
+    # orgs = [s.snyk_orgs[o]["orgId"] for o in s.snyk_orgs]
 
     # we want to get the visible list of orgs
 
     visible_orgs = [o.id for o in client.organizations.all()]
 
-    org_ids = [o for o in org_ids if o in visible_orgs]
+    orgs = [o for o in s.snyk_orgs if o["orgId"] in visible_orgs]
 
     typer.echo("Scanning Snyk for projects originating from GitHub Repos", err=True)
     with typer.progressbar(watchlist.repos, label="Scanning: ") as project_progress:
         for r in project_progress:
-            for snyk_org in org_ids:
-                # print(r.source.project_base)
-                p_resp = search_projects(r.source.project_base, str(s.default_int), client, snyk_org)
+            for snyk_org in orgs:
+                p_resp = search_projects(r.source.project_base, str(s.default_int), client, s.snyk_token, snyk_org)
                 for p in p_resp["projects"]:
                     p["org_id"] = p_resp["org"]["id"]
                     p["org_name"] = p_resp["org"]["name"]
