@@ -15,7 +15,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
-from models import SnykWatchList, Repo, Project, Settings, Tag
+from models.repositories import Repo, Project, Tag
+from models.sync import SnykWatchList, Settings
+
 from utils import yopen, jopen, search_projects, RateLimit, newer, jwrite
 
 app = typer.Typer(add_completion=False)
