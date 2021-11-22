@@ -36,15 +36,17 @@ target = {
 
 groups = ["dcf9cae3-2f54-4ad2-98af-e70b844657f3", "36863d40-ba29-491f-af63-7a1a7d79e411"]
 
-# all_orgs = Orgs(cache="conf/cache", groups=groups)
+all_orgs = Orgs(cache="conf/cache", groups=groups)
 
-# all_orgs.summary()
+all_orgs.summary()
 
-# all_orgs.refresh_orgs(v1, v3, origin="github")
+select_orgs = ["39ddc762-b1b9-41ce-ab42-defbe4575bd6"]
 
-# all_orgs.summary()
+all_orgs.refresh_orgs(v1, v3, origin="github", selected_orgs=select_orgs)
 
-# all_orgs.save()
+all_orgs.summary()
+
+all_orgs.save()
 
 new_orgs = Orgs(cache="conf/cache", groups=groups)
 

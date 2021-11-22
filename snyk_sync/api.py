@@ -144,7 +144,7 @@ class SnykV3Client(object):
             logger=logger,
         )
 
-        logger.debug("RESP: %s" % resp.status_code)
+        # logger.debug("RESP: %s" % resp.status_code)
 
         if not resp.ok:
             resp.raise_for_status()

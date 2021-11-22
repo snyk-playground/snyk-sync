@@ -5,6 +5,7 @@ from tomlkit.api import boolean
 from tomlkit.items import DateTime
 import yaml
 
+import typer
 import os
 import logging
 from pathlib import Path
@@ -340,15 +341,17 @@ class Orgs(BaseModel):
     cache: str = ""
     groups: List[UUID4] = list()
 
-    def refresh_orgs(self, v1client: SnykClient, v3client: SnykV3Client, origin: str = None):
+    def refresh_orgs(self, v1client: SnykClient, v3client: SnykV3Client, origin: str = None, selected_orgs: list = []):
         for group in self.groups:
             new_orgs = v1_get_pages(f"group/{group}/orgs", v1client, "orgs")
             for org in new_orgs["orgs"]:
-                org["group_id"] = new_orgs["id"]
-                org["group_name"] = new_orgs["name"]
-                self.add_org(Org.parse_obj(org))
+                if len(selected_orgs) == 0 or org["id"] in selected_orgs:
+                    org["group_id"] = new_orgs["id"]
+                    org["group_name"] = new_orgs["name"]
+                    self.add_org(Org.parse_obj(org))
 
         for org in self.orgs:
+            logger.debug(f"Refreshing Org: {org.name}")
             org.refresh(v1client, v3client, origin)
 
         pass

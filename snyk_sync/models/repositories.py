@@ -13,6 +13,8 @@ from typing import List
 
 from pydantic import BaseModel, FilePath, ValidationError, root_validator, UUID4, Field, create_model, validator
 
+from github import ContentFile
+
 
 class Source(BaseModel):
     fork: bool
@@ -134,7 +136,7 @@ class Project(BaseModel):
         Returns a list of missing tags from a project. This assumes we only want tags managed on projects that are in the snyk org the parent repo's .snyk.d/import.yaml defines
         Because of how the snyk tag API works, you can have duplicate values for tags (user=foo, user=bar), so we can create duplicate tags key's here, but currently we're not support overwriting or pruning existing tags on a project
         """
-        if repo_org != self.org_name:
+        if repo_org != self.org_slug:
             return []
 
         return [i for i in tags if i not in self.tags]
@@ -146,11 +148,13 @@ class Repo(BaseModel):
     id: int
     updated_at: str
     import_sha: str = ""
+    full_name: str
     projects: List[Project] = []
     tags: List[Tag] = []
     org: str = "default"
+    branches: List[str]
 
-    def needs_reimport(self, default_org):
+    def needs_reimport(self, default_org, snyk_orgs):
         """
         Returns true if there are no projects in associated with the org that has been assigned to this repo
         """
@@ -159,7 +163,9 @@ class Repo(BaseModel):
         else:
             org_name = self.org
 
-        matching = [p for p in self.projects if p.org_name == org_name]
+        org_id = snyk_orgs[org_name]["orgId"]
+
+        matching = [p for p in self.projects if p.org_id == org_id]
 
         return len(matching) == 0
 
@@ -215,3 +221,25 @@ class Repo(BaseModel):
             matches_projects = True
 
         return matches == len(valid_keys) and matches_projects
+
+    def parse_import(self, import_yaml: ContentFile):
+        r_yaml = yaml.safe_load(import_yaml.decoded_content)
+
+        self.import_sha = import_yaml.sha
+
+        # print(r_url)
+        if "orgName" in r_yaml.keys():
+            self.org = r_yaml["orgName"]
+
+        if "tags" in r_yaml.keys():
+            for k, v in r_yaml["tags"].items():
+                tmp_tag = {"key": k, "value": v}
+                self.tags.append(Tag.parse_obj(tmp_tag))
+
+    def is_older(self, timestamp) -> bool:
+
+        remote_ts = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+
+        local_ts = datetime.strptime(self.updated_at, "%Y-%m-%d %H:%M:%S")
+
+        return bool(remote_ts > local_ts)
