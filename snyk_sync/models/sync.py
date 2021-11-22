@@ -33,6 +33,7 @@ class Settings(BaseModel):
     github_orgs: List[str] = list()
     cache_timeout: Optional[float]
     instance: Optional[str]
+
     forks: bool = False
     force_sync: bool = False
 

@@ -212,7 +212,7 @@ def sync(
     # flush the watchlist
     # watchlist = SnykWatchList()
 
-    gh = Github(s.github_token, per_page=100)
+    gh = Github(s.github_token, per_page=1)
 
     rate_limit = RateLimit(gh)
 
@@ -275,8 +275,6 @@ def sync(
                 try:
                     f_yaml = f_repo.get_contents(".snyk.d/import.yaml")
                     watchlist.get_repo(f_repo.id).parse_import(f_yaml, instance=s.instance)
-                except:
-                    pass
 
         typer.echo(f"Have {len(import_yamls)} Repos with an import.yaml", err=True)
         rate_limit.update(show_rate_limit)
@@ -291,12 +289,13 @@ def sync(
 
                 import_repo = watchlist.get_repo(r_id)
 
+
                 import_repo.parse_import(import_yaml, instance=s.instance)
+
 
     rate_limit.update(show_rate_limit)
 
     # this calls our new Orgs object which caches and populates Snyk data locally for us
-
     all_orgs = Orgs(cache=str(s.cache_dir), groups=s.snyk_groups)
 
     select_orgs = [str(o["orgId"]) for k, o in s.snyk_orgs.items()]
@@ -310,7 +309,6 @@ def sync(
     typer.echo("Scanning Snyk for projects originating from GitHub Enterprise Repos", err=True)
     for r in watchlist.repos:
         found_projects = all_orgs.find_projects_by_repo(r.full_name, r.id)
-
         for p in found_projects:
             r.add_project(p)
 
