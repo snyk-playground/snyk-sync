@@ -1,4 +1,4 @@
-name: Snyk example
+name: Build and Deploy
 on:
   push:
     branches:
@@ -18,11 +18,11 @@ jobs:
         run: |
           curl -sL https://install.python-poetry.org | python - -y
       - name: Snyk test
-        run: snyk test --org=ie-playground --file=poetry.lock --package-manager=poetry --severity-threshold=critical
+        run: snyk test --org=ie-playground --file=poetry.lock --package-manager=poetry --severity-threshold=critical --project-lifecycle=development
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Snyk monitor
-        run: snyk monitor --org=ie-playground --file=poetry.lock --package-manager=poetry
+        run: snyk monitor --org=ie-playground --file=poetry.lock --package-manager=poetry --project-lifecycle=development
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
   docker_build:
@@ -51,11 +51,11 @@ jobs:
           platforms: linux/amd64
           tags: ghcr.io/snyk-playground/snyk-sync:${{ env.GITHUB_SHA }}
       - name: Snyk Container Test
-        run: snyk container test ghcr.io/snyk-playground/snyk-sync:${{ env.GITHUB_SHA }} --org=ie-playground --severity-threshold=critical
+        run: snyk container test ghcr.io/snyk-playground/snyk-sync:${{ env.GITHUB_SHA }} --org=ie-playground --severity-threshold=critical --project-lifecycle=development
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Snyk Container Monitor
-        run: snyk container monitor ghcr.io/snyk-playground/snyk-sync:${{ env.GITHUB_SHA }} --project-name=snyk-sync-container --org=ie-playground --target-reference=${{ env.GITHUB_REF }} --project-tags=gitsha=${{ env.GITHUB_SHA }}
+        run: snyk container monitor ghcr.io/snyk-playground/snyk-sync:${{ env.GITHUB_SHA }} --project-name=snyk-sync-container --org=ie-playground --target-reference=${{ env.GITHUB_REF }} --project-lifecycle=development --project-tags=gitsha=${{ env.GITHUB_SHA }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Build and push
