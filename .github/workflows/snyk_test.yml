@@ -1,0 +1,19 @@
+name: Snyk example
+on: pull_request, workflow_dispatch
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: snyk/actions/setup@master
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+          architecture: "x64"
+      - name: Bootstrap poetry
+        run: |
+          curl -sL https://install.python-poetry.org | python - -y
+      - name: Snyk test
+        run: snyk test --org=ie-playground
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
