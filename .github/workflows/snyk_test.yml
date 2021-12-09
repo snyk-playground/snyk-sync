@@ -1,5 +1,7 @@
 name: Snyk example
-on: pull_request, workflow_dispatch
+on:
+  - pull_request
+  - workflow_dispatch
 jobs:
   security:
     runs-on: ubuntu-latest
