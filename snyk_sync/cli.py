@@ -315,11 +315,11 @@ def sync(
 
     typer.echo(f"Updating cache of Snyk projects", err=True)
 
-    all_orgs.refresh_orgs(client, v3client, origin="github-enterprise", selected_orgs=select_orgs)
+    all_orgs.refresh_orgs(client, v3client, origin=s.default_int, selected_orgs=select_orgs)
 
     all_orgs.save()
 
-    typer.echo("Scanning Snyk for projects originating from GitHub Enterprise Repos", err=True)
+    typer.echo("Scanning Snyk for projects originating from GitHub repos", err=True)
     for r in watchlist.repos:
         found_projects = all_orgs.find_projects_by_repo(r.full_name, r.id)
         for p in found_projects:
@@ -432,10 +432,10 @@ def targets(
 
                     if force_default:
                         org_id = s.snyk_orgs[s.default_org]["orgId"]
-                        int_id = s.snyk_orgs[s.default_org]["integrations"]["github-enterprise"]
+                        int_id = s.snyk_orgs[s.default_org]["integrations"][s.default_int]
                     else:
                         org_id = branch.org_id
-                        int_id = branch.integrations["github-enterprise"]
+                        int_id = branch.integrations[s.default_int]
 
                     source = r.source.get_target()
 
