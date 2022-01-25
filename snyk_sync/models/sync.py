@@ -122,12 +122,12 @@ class SnykWatchList(BaseModel):
 
                 existing_repo.archived = archived
 
-                if org_name != "default":
-                    existing_repo.org = org_name
-
                 existing_repo.branches = branches
 
                 existing_repo.updated_at = str(repo.updated_at)
+
+            if existing_repo.org != org_name and org_name != "default":
+                existing_repo.org = org_name
 
         else:
             try:
