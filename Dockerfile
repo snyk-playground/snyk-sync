@@ -24,8 +24,6 @@ COPY poetry.lock poetry.lock
 # now that we have poetry, we export the requirements file
 RUN poetry export --quiet --no-interaction -f requirements.txt --without-hashes -o /src/requirements.txt
 
-COPY ./snyk_sync /src/snyk_sync
-
 # now we create our final container, runtime
 FROM python:3.9-slim AS runtime
 
@@ -35,7 +33,7 @@ COPY --from=requirements /usr/local/bin/snyk /usr/local/bin/snyk
 COPY --from=requirements /usr/local/bin/snyk-api-import /usr/local/bin/snyk-api-import
 
 # copy stuff from this repo into the /app directory of the container
-COPY --from=requirements /src/snyk_sync /app/snyk_sync
+COPY snyk_sync /app/snyk_sync
 
 # now we use multistage containers to then copy the requirements from the other container
 COPY --from=requirements /src/requirements.txt .
