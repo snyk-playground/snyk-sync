@@ -55,6 +55,8 @@ jobs:
       matrix:
         platform: [linux/amd64]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - uses: snyk/actions/setup@master
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
